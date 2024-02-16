@@ -47,11 +47,11 @@ var adminLogin = async (req,res,next,transaction) => {
         
     }else{
 
-    // iPasssMatch =  bcrypt.compareSync(bodyData.password , hashPassword)
+    iPasssMatch =  bcrypt.compareSync(bodyData.password , hashPassword)
     
     
 
-    if (bodyData.password == hashPassword) {
+    if (iPasssMatch) {
         const {id} = await transaction('admins').select('id').where('email','=',bodyData.email).first()
 
 
@@ -89,12 +89,69 @@ var adminLogin = async (req,res,next,transaction) => {
 }
 
 
+var adminRegister = async (req,res,next,transaction) => {
+
+    // data validation
+    const validationSchema = Joi.object({
+        email: Joi.string().max(50).required(),
+        password: Joi.string().max(50).required()
+    })
+    const {error} = await validationSchema.validateAsync(req.body)
+    if (error) {
+        throw new CreateError('ValidationError' , error.details[0].message)
+    }
+    
+
+    const bodyData = req.body
+
+
+    // try catch for transaction errors and unknown error msg handling
+    let query
+    try {
+         query = await transaction.select('email').from('admins').where('email','=' ,bodyData.email).first()
+    } catch (error) {
+        throw new CreateError('TransactionError' , error.message)
+    }
+
+
+
+
+    if (query?.email != bodyData.email) {
+        res.send({
+            status:0,
+            message : "Email is not Registered"
+        })
+    }
+    else{
+        let hashPassword = await bcrypt.hash(bodyData.password , 10)
+
+
+        try {
+             await transaction('admins').where('email', bodyData.email).update({
+                password : hashPassword
+             })
+       } catch (error) {
+           throw new CreateError('TransactionError' , error.message)
+       }
+
+       res.send({
+        status:1,
+        message : "Registration Completed"
+    })
+
+    }
+
+
+
+}
+
+
 
 
 var adminLogout = async (req,res,next,transaction) => {
 
     try {
-        await transaction('admins').where('id','=',req.id).update({
+        await transaction('admins').where('id','=',req.admin_id).update({
             token : null
         })
     } catch (error) {
@@ -109,4 +166,5 @@ var adminLogout = async (req,res,next,transaction) => {
 
 adminLogin = tryCatch(adminLogin)
 adminLogout = tryCatch(adminLogout)
-module.exports = { adminLogin , adminLogout}
+adminRegister = tryCatch(adminRegister)
+module.exports = { adminLogin , adminLogout ,adminRegister}
