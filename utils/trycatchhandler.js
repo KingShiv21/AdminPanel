@@ -1,16 +1,16 @@
 const Knex = require('../db')
 
-export const tryCatch = (controller) =>{
+ var tryCatch = (controller) =>{
     return async (req,res,next) =>{
         
         try {
             var transaction = await Knex.transaction()
             await controller(req,res,next,transaction);
             await transaction.commit()
-        } catch (error) {
+        } catch (err) {
             await transaction.rollback()
 
-            console.log("error in try catch pool" , error)
+            console.log("error in try catch pool" , err)
 
             if (err.name === 'ValidationError') {
                 return res.send({ status:"VAL_ERR", Backend_Error:err.message });
@@ -35,3 +35,5 @@ export const tryCatch = (controller) =>{
         }
     }
 }
+
+module.exports ={ tryCatch }

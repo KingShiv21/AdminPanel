@@ -5,4 +5,4 @@ class CreateError extends Error {
     }
 }
 
-export default CreateError;
+module.exports = { CreateError };

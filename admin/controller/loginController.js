@@ -1,4 +1,4 @@
-const CreateError = require('../../utils//trycatchclass')
+const { CreateError }= require('../../utils//trycatchclass')
 const Joi = require('joi')
 const { tryCatch } = require('../../utils/trycatchhandler')
 require('dotenv').config()
@@ -7,11 +7,11 @@ require('dotenv').config()
 const jwt = require('jsonwebtoken')
 const util = require('util')
 const bcrypt = require('bcrypt')
-const AsignSync = util.promisify(jwt.sign())
+const signAsync = util.promisify(jwt.sign)
 
 
 
-const adminLogin = async (req,res,next,transaction) => {
+var adminLogin = async (req,res,next,transaction) => {
 
     // data validation
     const validationSchema = Joi.object({
@@ -31,10 +31,10 @@ const adminLogin = async (req,res,next,transaction) => {
 
     // try catch for transaction errors and unknown error msg handling
     try {
-        const {email , password} = await transaction.select('email','password').from('admins').where('email','=' ,bodyData.email).first()
-
-        tableEmail = email
-        hashPassword = password
+        const query = await transaction.select('email','password').from('admins').where('email','=' ,bodyData.email).first()
+        console.log("query result" , query)
+        tableEmail = query?.email
+        hashPassword = query?.password
     } catch (error) {
         throw new CreateError('TransactionError' , error.message)
     }
@@ -47,22 +47,32 @@ const adminLogin = async (req,res,next,transaction) => {
         
     }else{
 
-    iPasssMatch =  bcrypt.compareSync(bodyData.password , hashPassword)
-    if (iPasssMatch) {
-        const {id} = await transaction().select('id').from('admins').where('email','=',bodyData.email).first()
+    // iPasssMatch =  bcrypt.compareSync(bodyData.password , hashPassword)
+    
+    
+
+    if (bodyData.password == hashPassword) {
+        const {id} = await transaction('admins').select('id').where('email','=',bodyData.email).first()
+
+
+        // console.log("keyyyyyyyyyyyyyyyyy" , process.env.SECRET_KEY)
+        // console.log("idddddddddddddd" , id)
         const payload = {
-            id,
-            key : process.env.SECRET_KEY
+            admin_id : id 
         }
 
-        const token = await AsignSync(payload,{
-            expiresIn : '100d'
+        const tok = await signAsync(payload,process.env.SECRET_KEY ,{
+            expiresIn : '365d'
+        })
+        // console.log("token" , tok)
+        await transaction('admins').where('id','=',id).update({
+            token: tok
         })
 
 
         res.send({
             status:1,
-            token ,
+            token : tok,
             message : "Login Successfully"
         })
         
@@ -76,11 +86,27 @@ const adminLogin = async (req,res,next,transaction) => {
 
     }
 
+}
 
 
 
 
+var adminLogout = async (req,res,next,transaction) => {
+
+    try {
+        await transaction('admins').where('id','=',req.id).update({
+            token : null
+        })
+    } catch (error) {
+        throw new CreateError('TransactionError' , error.message)
+    }
+        res.send({
+            status:1 ,
+            message : "Logout Successfully"
+        })
+ 
 }
 
 adminLogin = tryCatch(adminLogin)
-module.exports = { adminLogin }
+adminLogout = tryCatch(adminLogout)
+module.exports = { adminLogin , adminLogout}

@@ -1,4 +1,4 @@
-import { adminLogin } from '../controller/loginController';
+const { adminLogin , adminLogout } = require('../controller/loginController');
 
 const express = require('express')
 const router = express.Router()
@@ -6,9 +6,9 @@ const router = express.Router()
 
 
 router.route('/login').post(adminLogin)
-router.route('/logout').get()
+router.route('/logout').get(adminLogout)
 
 
 
 
-export default router;
+module.exports = router
