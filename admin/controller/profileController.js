@@ -3,13 +3,18 @@ const Joi = require('joi')
 const { tryCatch } = require('../../utils/trycatchhandler')
 
 
-var uploadProfile = async(req,res,next,transaction) =>{
+
+var uploadProfile = async(req,res,next,transaction) => {
 
     if (req?.file) {
 
+        var baseUrl = `${req.protocol}://${req.get('host')}`;
+        baseUrl+="/profile/"+req.file.filename
+
+
         try {
             await transaction('admins').where('id','=',req.admin_id).update({
-                profile : req?.file.banner
+                profile : baseUrl
             })
         } catch (error) {
             throw new CreateError('TransactionError' , error.message)
@@ -30,7 +35,7 @@ var saveProfile = async(req,res,next,transaction) =>{
         name : Joi.string().max(50).required()
     })
 
-    const {error} = validationSchema.schema(req.body)
+    const { error } = await validationSchema.validateAsync(req.body)
     if (error) {
         throw new CreateError('ValidationError' , error.details[0].message)
     }
@@ -69,7 +74,7 @@ var getProfile = async(req,res,next,transaction) =>{
 
     return res.send({
         status:1,
-        date
+        data
     })
 }
 

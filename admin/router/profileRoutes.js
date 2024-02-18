@@ -8,7 +8,7 @@ const router = express.Router()
 
 
 router.route('/save/profile/details').post(authAdmin,saveProfile)
-router.route('/get/profile/details/:id').get(authAdmin,getProfile)
+router.route('/get/profile/details').get(authAdmin,getProfile)
 router.route('/upload/profile/logo').post( authAdmin,profileMulter.single('profile'),uploadProfile)
 
 
