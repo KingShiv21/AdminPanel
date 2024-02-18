@@ -124,11 +124,14 @@ var adminRegister = async (req,res,next,transaction) => {
     }
     else{
         let hashPassword = await bcrypt.hash(bodyData.password , 10)
+        let registered_at = new Date().toISOString()
+        registered_at = registered_at.substring(0 ,registered_at.length - 6)
 
-
+        console.log(registered_at)
         try {
              await transaction('admins').where('email', bodyData.email).update({
-                password : hashPassword
+                password : hashPassword ,
+                registered_at
              })
        } catch (error) {
            throw new CreateError('TransactionError' , error.message)

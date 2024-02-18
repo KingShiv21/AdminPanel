@@ -6,11 +6,12 @@ exports.up = function(knex) {
     // fields
     table.increments('id').primary().notNullable().defaultTo(null);
     table.string('email',50).notNullable().defaultTo(null);
-    table.string('name',50).nullable().defaultTo("");
+    table.string('name',50).nullable().defaultTo(null);
+    table.string('profile',500).nullable().defaultTo(null);
     table.string('password',500).defaultTo(null);
     table.string('reg_otp', 500).nullable().defaultTo(null);
     table.string('forgot_otp', 500).nullable().defaultTo(null);
-    table.bigint('email_verified_at').nullable().defaultTo(null);
+    table.bigint('email_verified_at',50).nullable().defaultTo(null);
     table.string('token', 500).nullable().defaultTo(null);
     table.timestamp('registered_at').nullable().defaultTo(null);
   })

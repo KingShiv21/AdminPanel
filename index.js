@@ -6,12 +6,13 @@ const rateLimit = require('express-rate-limit')
 const path = require('path')
 const ejs = require('ejs')
 
+require('dotenv').config()
+
 // routes import
 
 // admin
-const loginRoute = require('./admin/router/loginRoutes')
-
-require('dotenv').config()
+const adminLoginRoute = require('./admin/router/loginRoutes')
+const adminProfileRoute = require('./admin/router/profileRoutes')
 
 
 // middlewares
@@ -29,7 +30,8 @@ app.set('views' ,  path.join(__dirname , 'public' , 'views'))
 
 
 // routes
-app.use('/admin/registration' , loginRoute)
+app.use('/admin/registration' , adminLoginRoute)
+app.use('/admin/profile' , adminProfileRoute)
 
 
 
