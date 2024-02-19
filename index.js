@@ -1,5 +1,6 @@
 const express = require("express")
 const db = require('./db')
+const cors = require('cors')
 
 const app = express()
 const rateLimit = require('express-rate-limit')
@@ -16,6 +17,13 @@ const adminProfileRoute = require('./admin/router/profileRoutes')
 
 
 // middlewares
+const corsOptions = {
+    origin: '*', 
+    methods: 'GET,POST, PUT,DELETE',           
+    optionsSuccessStatus: 200     
+};
+
+app.use(cors(corsOptions));
 app.use(rateLimit({
     windowMs : 15 * 60 * 1000,
     max : 1000
@@ -39,7 +47,7 @@ app.use('/admin/profile' , adminProfileRoute)
 
 
 
-app.get("/", (req,res)=>{
+app.get("/", (req,res) =>{
     res.send("Server is Fine")
 })
 app.get("*", async(req,res)=>{
